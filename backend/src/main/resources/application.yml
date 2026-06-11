@@ -1,17 +1,20 @@
 spring:
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/notify_demo}
-    username: ${DB_USER:postgres}
-    password: ${DB_PASSWORD:postgres}
+    url: ${DB_URL}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+    hikari:
+      maximum-pool-size: 4   # Supabase free tier ít kết nối — chặn pool overflow
   jpa:
     hibernate:
       ddl-auto: update   # demo only — production dùng migration
     open-in-view: false
   mail:
-    host: smtp.gmail.com
-    port: 587
-    username: ${MAIL_USER}        # vd: yourapp@gmail.com
-    password: ${MAIL_PASSWORD}    # Gmail App Password 16 ký tự
+    # Brevo SMTP relay — cổng 2525 (cổng SMTP thay thế, không bị chặn như 587/465/25)
+    host: ${MAIL_HOST}
+    port: ${MAIL_PORT}
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
     properties:
       mail.smtp.auth: true
       mail.smtp.starttls.enable: true
