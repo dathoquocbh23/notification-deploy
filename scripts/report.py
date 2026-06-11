@@ -129,11 +129,11 @@ def add_images(doc, buoc):
 
 
 def add_code(doc, text):
-    """Một dòng lệnh/code — font monospace để phân biệt với văn bản thường."""
+    """Một dòng lệnh/code/log — font monospace nhỏ để chứa dòng dài, phân biệt văn bản thường."""
     p = doc.add_paragraph()
     run = p.add_run(text)
     run.font.name = "Consolas"
-    run.font.size = Pt(10)
+    run.font.size = Pt(8.5)
 
 
 def render_markdown(doc, md_path):

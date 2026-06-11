@@ -1,5 +1,6 @@
 package com.demo.notify.service;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.scheduling.annotation.Async;
@@ -16,14 +17,17 @@ import org.springframework.stereotype.Service;
 public class EmailService {
 
     private final JavaMailSender mailSender;
+    private final String from;   // sender đã verify trong Brevo — thiếu thì Brevo đánh Error
 
-    public EmailService(JavaMailSender mailSender) {
+    public EmailService(JavaMailSender mailSender, @Value("${app.mail.from}") String from) {
         this.mailSender = mailSender;
+        this.from = from;
     }
 
     @Async  // không chặn request — email chậm hơn push nhiều
     public void send(String to, String subject, String body) {
         SimpleMailMessage msg = new SimpleMailMessage();
+        msg.setFrom(from);   // BẮT BUỘC — Brevo từ chối email không có From
         msg.setTo(to);
         msg.setSubject(subject);
         msg.setText(body);

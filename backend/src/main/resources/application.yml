@@ -19,6 +19,11 @@ spring:
       mail.smtp.auth: true
       mail.smtp.starttls.enable: true
 
+# Sender đã verify trong Brevo — BẮT BUỘC, thiếu From thì Brevo đánh Error (không gửi)
+app:
+  mail:
+    from: ${MAIL_FROM}
+
 firebase:
   service-account-path: ${FIREBASE_SA_PATH:./service-account.json}
 

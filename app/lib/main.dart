@@ -7,9 +7,23 @@ import 'pages/login_page.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(); // cần firebase_options qua flutterfire configure
-  await LocalNotificationService.instance.init();
-  await PushService.instance.init();
+  // Bọc từng init: 1 service hỏng (vd FCM getToken trả SERVICE_NOT_AVAILABLE)
+  // KHÔNG được làm sập app — UI vẫn phải vẽ. Lỗi chỉ log lại để chẩn đoán.
+  try {
+    await Firebase.initializeApp(); // cần firebase_options qua flutterfire configure
+  } catch (e, st) {
+    debugPrint('Firebase.initializeApp lỗi: $e\n$st');
+  }
+  try {
+    await LocalNotificationService.instance.init();
+  } catch (e, st) {
+    debugPrint('LocalNotificationService.init lỗi: $e\n$st');
+  }
+  try {
+    await PushService.instance.init();
+  } catch (e, st) {
+    debugPrint('PushService.init lỗi: $e\n$st');
+  }
   runApp(const NotifyDemoApp());
 }
 
