@@ -1,0 +1,23 @@
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/notify_demo}
+    username: ${DB_USER:postgres}
+    password: ${DB_PASSWORD:postgres}
+  jpa:
+    hibernate:
+      ddl-auto: update   # demo only — production dùng migration
+    open-in-view: false
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${MAIL_USER}        # vd: yourapp@gmail.com
+    password: ${MAIL_PASSWORD}    # Gmail App Password 16 ký tự
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+
+firebase:
+  service-account-path: ${FIREBASE_SA_PATH:./service-account.json}
+
+server:
+  port: 8080

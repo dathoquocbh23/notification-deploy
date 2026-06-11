@@ -1,0 +1,13 @@
+# Secrets — tuyệt đối không commit (bài học từ vụ .env trước)
+.env
+service-account.json
+*adminsdk*.json
+google-services.json
+**/firebase_options.dart
+database.txt
+report_assets/
+
+# Build
+backend/target/
+app/build/
+app/.dart_tool/

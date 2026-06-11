@@ -1,0 +1,27 @@
+name: notify_demo_app
+description: "App Vi demo - notification pipeline (FCM 3 trang thai + lich su DB-first)"
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.5.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  firebase_core: ^4.1.1
+  firebase_messaging: ^16.0.2
+  flutter_local_notifications: ^21.0.0   # bắc cầu foreground
+  http: ^1.2.0
+  cupertino_icons: ^1.0.8
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+
+# Chạy `flutterfire configure` để sinh lib/firebase_options.dart
+# (chỉ dùng cho FCM — không dùng dịch vụ Firebase nào khác)

@@ -1,0 +1,44 @@
+@startuml sd4_selfbuilt_vs_serverless
+title SD-4 · Tự build (server) vs Supabase Edge Function (serverless)\nCùng vận chuyển qua FCM — khác nhau NƠI ĐẶT LOGIC ĐIỀU PHỐI
+autonumber
+skinparam shadowing false
+
+participant "Sự kiện\n(giao dịch mới)" as EV
+participant "Spring Boot\n(server của mình)" as SB
+participant "Supabase\nPostgres + Webhook" as SP
+participant "Edge Function\n(Deno, Supabase host)" as EF
+participant "FCM" as FCM
+participant "Thiết bị" as DV
+
+== Đường 1 · TỰ BUILD — logic nằm ở server của mình ==
+EV -> SB : POST /transfers
+SB -> SB : xử lý giao dịch\n+ quyết định gửi noti
+SB -> FCM : HTTP v1 send (firebase-admin)
+FCM -> DV : banner
+note right of SB
+  Mình nuôi server, toàn quyền
+  payload / logic / dữ liệu.
+  Đổi lại: tự lo hạ tầng, scale.
+end note
+
+== Đường 2 · SERVERLESS — logic dời lên Supabase ==
+EV -> SP : INSERT INTO transactions
+SP -> EF : Database Webhook\n(trigger on INSERT)
+EF -> EF : đọc payload,\nquyết định gửi noti
+EF -> FCM : HTTP v1 send (fetch)
+FCM -> DV : banner
+note right of EF
+  Không nuôi server — DB đổi
+  là tự bắn. Đổi lại: logic
+  nằm trong hệ Supabase,
+  phụ thuộc nền tảng.
+end note
+
+== Điểm chung ==
+note over FCM
+  CẢ HAI đường đều phải qua FCM.
+  FCM là VẬN CHUYỂN (bắt buộc),
+  không phải "bên thứ ba".
+  "Bên thứ ba" = nơi đặt ĐIỀU PHỐI.
+end note
+@enduml

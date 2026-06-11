@@ -1,0 +1,46 @@
+@startuml sd1_token_lifecycle
+title SD-1 · Vòng đời FCM token (đăng nhập / refresh / đăng xuất)
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+
+actor User as U
+participant "App Flutter" as App
+participant "FCM SDK\n(trên máy)" as SDK
+participant "Backend\n(Spring Boot)" as BE
+database "PostgreSQL\nuser_tokens" as DB
+
+== Khởi động app ==
+App -> SDK : getToken()
+SDK --> App : fcm_token (địa chỉ của máy này)
+
+== Đăng nhập ==
+U -> App : nhập email + mật khẩu
+App -> BE : POST /auth/login\n{email, password, fcm_token}
+BE -> DB : INSERT user_tokens\n(user_id, token, device_info)
+note right of DB
+  1 user — N thiết bị
+  → bảng 1-nhiều, gửi push
+  là gửi cho TẤT CẢ token
+end note
+BE --> App : JWT
+
+== Token tự đổi (bất kỳ lúc nào) ==
+SDK -> App : onTokenRefresh(new_token)
+App -> BE : PUT /me/fcm-token
+BE -> DB : UPDATE token cũ → mới
+
+== Đăng xuất ==
+U -> App : bấm Đăng xuất
+App -> BE : POST /auth/logout {fcm_token}
+BE -> DB : DELETE token của thiết bị này
+note right of BE
+  KHÔNG xoá → máy cũ vẫn nhận
+  biến động số dư của tài khoản
+  đã đăng xuất = lỗ hổng bảo mật
+end note
+
+== Token chết (user gỡ app) ==
+BE -> BE : khi gửi FCM trả lỗi\nUNREGISTERED
+BE -> DB : DELETE token chết (dọn rác)
+@enduml

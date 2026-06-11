@@ -1,0 +1,44 @@
+@startuml sd3_receive_terminated
+title SD-3 · Nhận tiền khi app ĐÃ TẮT (máy B — Bình) — hero moment
+autonumber
+skinparam shadowing false
+
+participant "Backend\n(Spring Boot)" as BE
+database "PostgreSQL" as DB
+participant "FCM\n(Google)" as FCM
+participant "Android OS\n(máy B)" as OS
+participant "App Flutter\n(ĐÃ TẮT)" as App
+actor "Bình" as B
+
+== Tiếp nối SD-2: giao dịch vừa SUCCESS ==
+BE -> DB : INSERT notifications\n(user=Bình, "Bạn nhận +100.000đ")
+BE -> DB : SELECT token FROM user_tokens\nWHERE user_id = Bình
+note right of DB
+  Lấy TẤT CẢ token —
+  Bình có thể có nhiều máy
+end note
+BE -> FCM : HTTP v1 send(token máy B, payload)
+
+== Phía thiết bị — app không hề chạy ==
+FCM -> OS : đẩy qua kết nối hệ thống\n(Google Play Services)
+OS -> OS : hiện banner + âm thanh
+note over OS, App
+  App ĐANG TẮT HẲN — không một dòng
+  code Flutter nào chạy. Banner do
+  HỆ ĐIỀU HÀNH hiện. Đây là lý do
+  "thông báo thật" tới được mọi lúc.
+end note
+OS --> B : 🔔 "Bạn nhận +100.000đ"
+
+== Bình mở thông báo ==
+B -> OS : tap vào banner
+OS -> App : khởi động app\n(getInitialMessage chứa payload)
+App -> BE : GET /notifications
+BE -> DB : SELECT lịch sử của Bình
+DB --> App : danh sách đầy đủ
+App --> B : màn hình lịch sử thông báo\n(đủ cả những noti push bị rớt)
+note over App
+  Push = kênh ĐÁNH THỨC.
+  Lịch sử = đọc từ DB.
+end note
+@enduml

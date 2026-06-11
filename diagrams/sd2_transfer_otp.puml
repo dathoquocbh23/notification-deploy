@@ -1,0 +1,55 @@
+@startuml sd2_transfer_otp
+title SD-2 · Chuyển tiền + OTP email + push khi app đang mở (máy A — An)\nNghiệp vụ GIẢ LẬP — trọng tâm từ bước "Thông báo" trở đi
+autonumber
+skinparam shadowing false
+
+actor "An\n(máy A)" as An
+participant "App Flutter" as App
+participant "Backend\n(Spring Boot)" as BE
+database "PostgreSQL" as DB
+participant "Gmail SMTP" as SMTP
+participant "FCM" as FCM
+
+== Khởi tạo (nghiệp vụ giả lập — không phải trọng tâm) ==
+An -> App : nhập "chuyển Bình 100.000đ"
+App -> BE : POST /demo/transfers
+BE -> DB : lưu transfer PENDING + sinh OTP 6 số (hết hạn 5')
+BE -> SMTP : gửi email chứa mã OTP
+note right of SMTP
+  Kênh thay thế: SMS gateway
+  (eSMS / Twilio) — CÙNG pipeline,
+  chỉ thay phần vận chuyển.
+  Ngân hàng thật thường dùng SMS.
+end note
+SMTP --> An : mail OTP về hộp thư
+BE --> App : 202 — chờ xác thực
+
+== Xác thực OTP ==
+An -> App : nhập mã OTP
+App -> BE : POST /demo/transfers/{id}/verify {otp}
+BE -> DB : OTP đúng + còn hạn → transfer SUCCESS\n(giả lập — không có ledger thật)
+
+== TRỌNG TÂM · Notification Service (ghi DB trước, push sau) ==
+BE -> DB : INSERT notifications (user=An)\nINSERT notifications (user=Bình)
+note right of DB
+  DB là NGUỒN CHÂN LÝ.
+  Push có thể rớt — lịch sử
+  trong app đọc từ bảng này.
+end note
+BE -> DB : SELECT token của An (mọi thiết bị)
+BE -> FCM : send(token An, "Chuyển thành công −100k")
+BE -> SMTP : email biên lai cho An
+FCM --> App : onMessage (app đang FOREGROUND)
+note over App
+  FCM KHÔNG tự hiện banner khi
+  app đang mở → app tự bắc cầu
+  sang flutter_local_notifications
+end note
+App -> App : hiện local notification
+App --> An : banner "−100.000đ · Chuyển thành công"
+SMTP --> An : email biên lai
+note over BE, FCM
+  Song song: push cho Bình
+  → xem SD-3 (app Bình ĐÃ TẮT)
+end note
+@enduml
