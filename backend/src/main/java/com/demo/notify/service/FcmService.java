@@ -31,6 +31,13 @@ public class FcmService {
                 .setToken(token)
                 .setNotification(Notification.builder()
                         .setTitle(title).setBody(body).build())
+                // Để banner NHẢY heads-up cả khi app ở nền: OS render trên đúng
+                // channel Importance.max của app (banking_channel) + ưu tiên HIGH.
+                .setAndroidConfig(AndroidConfig.builder()
+                        .setPriority(AndroidConfig.Priority.HIGH)
+                        .setNotification(AndroidNotification.builder()
+                                .setChannelId("banking_channel").build())
+                        .build())
                 .putAllData(data == null ? Map.of() : data)
                 .build();
         try {
@@ -55,6 +62,11 @@ public class FcmService {
                 .setTopic(topic)
                 .setNotification(Notification.builder()
                         .setTitle(title).setBody(body).build())
+                .setAndroidConfig(AndroidConfig.builder()
+                        .setPriority(AndroidConfig.Priority.HIGH)
+                        .setNotification(AndroidNotification.builder()
+                                .setChannelId("banking_channel").build())
+                        .build())
                 .build();
         try {
             FirebaseMessaging.getInstance().send(msg);
