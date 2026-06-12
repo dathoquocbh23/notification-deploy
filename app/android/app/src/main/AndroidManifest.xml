@@ -4,8 +4,7 @@
     <application
         android:label="notify_demo_app"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher"
-        android:usesCleartextTraffic="true"><!-- DEMO-ONLY: cho phép http://. Có HTTPS thì GỠ dòng này -->
+        android:icon="@mipmap/ic_launcher"><!-- baseUrl là HTTPS (Railway) nên KHÔNG cần usesCleartextTraffic -->
         <activity
             android:name=".MainActivity"
             android:exported="true"

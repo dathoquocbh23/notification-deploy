@@ -9,13 +9,10 @@ class ApiService {
   ApiService._();
   static final ApiService instance = ApiService._();
 
-  // Cấu hình mạng tới backend — chọn 1 trong 3:
-  //  (1) USB + adb reverse (đang dùng, chống AP-isolation của WiFi chung):
-  //      chạy `adb reverse tcp:8080 tcp:8080` rồi để baseUrl = http://127.0.0.1:8080
-  //  (2) Cùng WiFi KHÔNG bị AP-isolation: đổi thành http://<IP-LAN-laptop>:8080
-  //  (3) Hotspot từ điện thoại (laptop nối hotspot): http://<IP-laptop-trên-hotspot>:8080
-  // Lưu ý: WiFi chung cư thường bật AP-isolation -> máy không thấy nhau dù cùng subnet.
-  static const String baseUrl = 'http://127.0.0.1:8080';
+  // Backend deploy trên Railway (HTTPS, cổng 443) — đi qua internet nên KHÔNG
+  // lệ thuộc LAN/WiFi/AP-isolation; đổi mạng 4G/WiFi gì cũng chạy, không cần build lại.
+  // (Muốn chạy backend local thì đổi sang http://<IP-LAN>:8080 + bật lại usesCleartextTraffic.)
+  static const String baseUrl = 'https://notification-deploy-production.up.railway.app';
 
   String? currentEmail; // user đang đăng nhập (auth giả lập)
 
