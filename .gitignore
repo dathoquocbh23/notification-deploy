@@ -14,3 +14,6 @@ report_assets/
 backend/target/
 app/build/
 app/.dart_tool/
+
+# Supabase CLI cache
+supabase/.temp/
