@@ -1,37 +1,71 @@
 package com.demo.notify.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientResponseException;
+
+import java.util.List;
+import java.util.Map;
 
 /**
- * TẦNG VẬN CHUYỂN EMAIL — Gmail SMTP qua JavaMailSender.
- * (Tái dùng pattern từ luồng OTP của auth service.)
+ * TẦNG VẬN CHUYỂN EMAIL — Brevo HTTP API (POST /v3/smtp/email).
  *
- * Kênh thay thế cùng vị trí trong pipeline: SMS gateway (eSMS/Twilio) —
- * chỉ đổi class này, phần điều phối ở NotificationService giữ nguyên.
+ * Vì sao HTTP API chứ không SMTP: server cloud (Railway...) CHẶN cổng SMTP
+ * outbound (25/587/465/2525) → JavaMailSender/SMTP treo timeout. HTTP API đi
+ * cổng 443 nên thoát. Gốc rễ là GIAO THỨC, không phải nhà cung cấp: Brevo qua
+ * SMTP relay vẫn bị chặn trên cloud.
+ *
+ * Kênh thay thế cùng vị trí pipeline: SMS gateway — CHỈ đổi class này, phần
+ * điều phối ở NotificationService/DemoController giữ nguyên (vận chuyển tách
+ * khỏi điều phối → chữ ký send/sendOtp/sendReceipt không đổi).
  */
 @Service
 public class EmailService {
 
-    private final JavaMailSender mailSender;
-    private final String from;   // sender đã verify trong Brevo — thiếu thì Brevo đánh Error
+    private static final Logger log = LoggerFactory.getLogger(EmailService.class);
 
-    public EmailService(JavaMailSender mailSender, @Value("${app.mail.from}") String from) {
-        this.mailSender = mailSender;
-        this.from = from;
+    private final RestClient client;
+    private final String senderEmail;
+    private final String senderName;
+
+    public EmailService(
+            @Value("${brevo.api-key}") String apiKey,
+            @Value("${brevo.sender-email}") String senderEmail,
+            @Value("${brevo.sender-name}") String senderName) {
+        this.senderEmail = senderEmail;
+        this.senderName = senderName;
+        this.client = RestClient.builder()
+                .baseUrl("https://api.brevo.com/v3/smtp/email")
+                .defaultHeader("api-key", apiKey)
+                .defaultHeader("accept", "application/json")
+                .build();
     }
 
     @Async  // không chặn request — email chậm hơn push nhiều
     public void send(String to, String subject, String body) {
-        SimpleMailMessage msg = new SimpleMailMessage();
-        msg.setFrom(from);   // BẮT BUỘC — Brevo từ chối email không có From
-        msg.setTo(to);
-        msg.setSubject(subject);
-        msg.setText(body);
-        mailSender.send(msg);
+        Map<String, Object> payload = Map.of(
+                "sender", Map.of("name", senderName, "email", senderEmail),
+                "to", List.of(Map.of("email", to)),
+                "subject", subject,
+                "textContent", body);
+        try {
+            var resp = client.post()
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(payload)
+                    .retrieve()
+                    .toBodilessEntity();
+            log.info("Brevo OK → to={} status={}", to, resp.getStatusCode().value());
+        } catch (RestClientResponseException e) {
+            // 4xx: Brevo trả lý do trong body (vd sender chưa verify / sai api-key) — log nguyên văn
+            log.error("Brevo lỗi {} → {}", e.getStatusCode().value(), e.getResponseBodyAsString());
+        } catch (Exception e) {
+            log.error("Brevo gọi thất bại: {}", e.getMessage());
+        }
     }
 
     public void sendOtp(String to, String otp) {

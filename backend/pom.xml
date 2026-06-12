@@ -23,11 +23,7 @@
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-data-jpa</artifactId>
     </dependency>
-    <!-- Kênh EMAIL (tự build): JavaMailSender + Gmail SMTP -->
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-mail</artifactId>
-    </dependency>
+    <!-- Kênh EMAIL: Brevo HTTP API qua RestClient (có sẵn trong spring-web) -->
     <!-- Kênh PUSH (tự build phần điều phối, vận chuyển qua FCM) -->
     <dependency>
       <groupId>com.google.firebase</groupId>

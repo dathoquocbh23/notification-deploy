@@ -9,20 +9,12 @@ spring:
     hibernate:
       ddl-auto: update   # demo only — production dùng migration
     open-in-view: false
-  mail:
-    # Brevo SMTP relay — cổng 2525 (cổng SMTP thay thế, không bị chặn như 587/465/25)
-    host: ${MAIL_HOST}
-    port: ${MAIL_PORT}
-    username: ${MAIL_USERNAME}
-    password: ${MAIL_PASSWORD}
-    properties:
-      mail.smtp.auth: true
-      mail.smtp.starttls.enable: true
 
-# Sender đã verify trong Brevo — BẮT BUỘC, thiếu From thì Brevo đánh Error (không gửi)
-app:
-  mail:
-    from: ${MAIL_FROM}
+# Kênh email qua Brevo HTTP API (cổng 443) — cloud chặn SMTP outbound nên KHÔNG dùng SMTP
+brevo:
+  api-key: ${BREVO_API_KEY:}
+  sender-email: ${BREVO_SENDER:visualedu.info@gmail.com}
+  sender-name: "Vi Demo"
 
 firebase:
   service-account-path: ${FIREBASE_SA_PATH:./service-account.json}
