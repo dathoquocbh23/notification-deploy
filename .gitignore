@@ -7,6 +7,9 @@ google-services.json
 database.txt
 report_assets/
 
+# Tools tạm (Supabase CLI binary)
+.tools/
+
 # Build
 backend/target/
 app/build/
