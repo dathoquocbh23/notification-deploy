@@ -28,4 +28,4 @@ firebase:
   service-account-path: ${FIREBASE_SA_PATH:./service-account.json}
 
 server:
-  port: 8080
+  port: ${PORT:8080}   # Railway/cloud cấp cổng động qua biến PORT; local mặc định 8080
